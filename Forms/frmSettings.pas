@@ -3,7 +3,8 @@ unit frmSettings;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, System.IniFiles;
 
 type
@@ -18,6 +19,7 @@ type
     Label1: TLabel;
     Edit2: TEdit;
     GroupBox1: TGroupBox;
+    CheckBox2: TCheckBox;
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -26,8 +28,10 @@ type
   private
     { Private declarations }
     procedure ResetToDefault();
+
   public
     { Public declarations }
+    procedure SetSettings;
   end;
 
 var
@@ -40,8 +44,6 @@ Uses Unit1;
 {$R *.dfm}
 
 procedure TForm2.Button1Click(Sender: TObject);
-var
-  IniFile : TIniFile;
 begin
   if Edit1.Text = '' then
   begin
@@ -55,15 +57,8 @@ begin
   PlayerCmd := Edit2.Text;
 
   AutoConfirmFavoriteDeletion := CheckBox1.Checked;
-
-  IniFile := TIniFile.Create(ChangeFileExt(Application.ExeName,'.ini'));
-  try
-    IniFile.WriteString('Settings', 'PlayerPath', Edit1.Text);
-    IniFile.WriteString('Settings', 'PlayerCmd', Edit2.Text);
-    IniFile.WriteBool('Settings', 'AutoConfirmFavoriteDeletion', CheckBox1.Checked);
-  finally
-    IniFile.Free;
-  end;
+  MinimizeToTray := CheckBox2.Checked;
+  SetSettings;
   Close();
 end;
 
@@ -98,6 +93,23 @@ begin
   Edit1.Text := defaultPlayerPath;
   Edit2.Text := defaultPlayerCmd;
   CheckBox1.Checked := False;
+  CheckBox2.Checked := true;
+end;
+
+procedure TForm2.SetSettings;
+var
+  IniFile: TIniFile;
+begin
+  IniFile := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
+  try
+    IniFile.WriteString('Settings', 'PlayerPath', PlayerPath);
+    IniFile.WriteString('Settings', 'PlayerCmd', PlayerCmd);
+    IniFile.WriteBool('Settings', 'AutoConfirmFavoriteDeletion',
+      AutoConfirmFavoriteDeletion);
+    IniFile.WriteBool('Settings', 'MinimizeToTray', MinimizeToTray);
+  finally
+    IniFile.Free;
+  end;
 end;
 
 procedure TForm2.Button4Click(Sender: TObject);
@@ -107,19 +119,24 @@ end;
 
 procedure TForm2.FormCreate(Sender: TObject);
 var
-   IniFile : TIniFile;
-   fn: string;
+  IniFile: TIniFile;
+  fn: string;
 begin
   SetFormIcons(Handle, 'MAINICON', 'MAINICON');
 
-  fn := ChangeFileExt(Application.ExeName,'.ini');
+  fn := ChangeFileExt(Application.ExeName, '.ini');
   if FileExists(fn) then
   begin
     IniFile := TIniFile.Create(fn);
     try
-      Edit1.Text := IniFile.ReadString('Settings', 'PlayerPath', defaultPlayerPath);
-      Edit2.Text := IniFile.ReadString('Settings', 'PlayerCmd', defaultPlayerCmd);
-      CheckBox1.Checked := IniFile.ReadBool('Settings', 'AutoConfirmFavoriteDeletion', False);
+      Edit1.Text := IniFile.ReadString('Settings', 'PlayerPath',
+        defaultPlayerPath);
+      Edit2.Text := IniFile.ReadString('Settings', 'PlayerCmd',
+        defaultPlayerCmd);
+      CheckBox1.Checked := IniFile.ReadBool('Settings',
+        'AutoConfirmFavoriteDeletion', False);
+      CheckBox2.Checked := IniFile.ReadBool('Settings', 'MinimizeToTray', true);
+
     finally
       IniFile.Free;
     end;

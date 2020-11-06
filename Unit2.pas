@@ -18,6 +18,8 @@ const
   MSG_PLAYER_FINISH_WRITE = 8;
   MSG_PLAYER_HANDLE = 9;
   MSG_PLAYER_EXIT = 10;
+  MSG_STREAM_ENDED = 11;
+  MSG_LOG_DEBUG = 12;
 
 type
   TStreamUrlQueueItem = class
@@ -38,10 +40,14 @@ type
 function InitWinsock:Boolean;
 //procedure dlFile(url: string);
 procedure DoDlStream(const task: IOmniTask);
+procedure DoDlStreamOld(const task: IOmniTask);
 function CreateMPCHC(playerPath: string; cmd:string): THandle;
 procedure WriteStreamToPlayer(const task: IOmniTask);
 
 implementation
+
+uses
+  System.Net.HttpClientComponent;
 
 var
   saAttr: SECURITY_ATTRIBUTES;
@@ -217,7 +223,6 @@ var
 begin
   item := TStreamUrlQueueItem(task.Param['item'].AsObject);
 
-  bSuccess := False;
   while True do
   begin
     bSuccess := WriteFile(g_hChildStd_IN_Wr, PByte(item.content)[0], item.contentLength, dwWritten, nil);
@@ -230,7 +235,80 @@ begin
   item.Free;
 end;
 
+
 procedure DoDlStream(const task: IOmniTask);
+var
+  http: TNetHTTPClient;
+  chunk: TStreamChunk;
+  rcvdStream: TBytesStream;
+  chunkId: integer;
+begin
+  http := task.Param['httpcli'].AsObject as TNetHTTPClient;
+  chunk := task.Param['chunk'].AsObject as TStreamChunk;
+  rcvdStream := nil;
+  try
+    try
+      rcvdStream := TBytesStream.Create();
+
+      http.Get(chunk.queueItem.url, rcvdStream);
+
+      // returned data handled by httpcli event handler, so we don't have to do anything
+
+//      if (SameText(http.TransferEncoding, 'chunked')) then
+//      begin
+//        // handled by httpcli event handler, so we don't have to do anything
+//      end
+//      else if http.ContentLength > 1 then
+//      begin
+//        if chunk.startIndex = 0 then
+//        begin
+////          chunk.queueItem.contentLength := chunk.queueItem.totalChunks * http.ContentLength;
+////          chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
+//          chunk.queueItem.contentLength := http.ContentLength;
+//          chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
+//          task.Comm.Send(MSG_STREAM_BEGIN_DOWNLOAD, chunk);
+//          tmpThreadContentLen := http.ContentLength div chunk.queueItem.totalChunks;
+//        end
+//        else
+//        begin
+//          tmpThreadContentLen := http.ContentLength;
+//        end;
+//
+//        if (http.RcvdStream.Size <> tmpThreadContentLen) then
+//        begin
+//            task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [12] Error: content length (%d) is different from expected (%d)', [chunk.queueItem.id, http.RcvdStream.Size, tmpThreadContentLen]) );
+//        end
+//        else
+//        begin
+//          http.RcvdStream.Position := 0;
+//          http.RcvdStream.ReadBuffer(PByte(chunk.queueItem.content)[chunk.startIndex], http.RcvdStream.Size);
+//        end;
+
+//      end
+//      else
+//      begin
+//        task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [10] content length (%d) invalid', [chunk.queueItem.id, http.ContentLength]) );
+//      end;
+
+        chunk.queueItem.contentLength := rcvdStream.Size;
+        chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
+        rcvdStream.ReadBuffer(chunk.queueItem.content^, chunk.queueItem.contentLength);
+
+        chunkId := chunk.queueItem.id;
+
+        task.Comm.Send(MSG_STREAM_CHUNK_DOWNLOADED, chunk);
+        Sleep(1);
+        task.Comm.Send(MSG_STREAM_ENDED, [chunkId, http]);
+
+    finally
+      rcvdStream.Free;
+    end;
+  except on E: Exception do
+    task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [3] Socket() error: [%s] %s', [chunk.queueItem.id, E.ClassName, E.Message]));
+  end;
+end;
+
+procedure DoDlStreamOld(const task: IOmniTask);
 var
   cSocket: TSOCKET;
   sAddr: TSockAddrIn;
@@ -414,7 +492,8 @@ begin
   end
   else
   begin
-    task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [10] content length invalid', [chunk.queueItem.id]) );
+    task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [10] content length (%d) invalid', [chunk.queueItem.id, contentLength]) );
+    goto beigas;
   end;
 
   while true do
@@ -446,7 +525,7 @@ begin
 
   if contentWrittenLen <> tmpThreadContentLen  then
   begin
-    task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [12] Error: content length is different from expected', [chunk.queueItem.id]) );
+    task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [12] Error: content length (%d) is different from expected (%d)', [chunk.queueItem.id, contentWrittenLen, tmpThreadContentLen]) );
   end;
 
   task.Comm.Send(MSG_STREAM_CHUNK_DOWNLOADED, chunk);

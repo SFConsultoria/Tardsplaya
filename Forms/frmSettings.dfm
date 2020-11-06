@@ -4,7 +4,7 @@ object Form2: TForm2
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Tardsplaya - Settings'
-  ClientHeight = 243
+  ClientHeight = 269
   ClientWidth = 537
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,51 +17,51 @@ object Form2: TForm2
   OnCreate = FormCreate
   DesignSize = (
     537
-    243)
+    269)
   PixelsPerInch = 96
   TextHeight = 13
   object Button1: TButton
     Left = 184
-    Top = 170
+    Top = 196
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
     TabOrder = 0
     OnClick = Button1Click
-    ExplicitTop = 85
+    ExplicitTop = 170
   end
   object Button2: TButton
     Left = 265
-    Top = 170
+    Top = 196
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Cancel'
     TabOrder = 1
     OnClick = Button2Click
-    ExplicitTop = 85
+    ExplicitTop = 170
   end
   object Button4: TButton
     Left = 184
-    Top = 201
+    Top = 227
     Width = 156
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Reset to Default'
     TabOrder = 2
     OnClick = Button4Click
-    ExplicitTop = 116
+    ExplicitTop = 201
   end
   object CheckBox1: TCheckBox
     Left = 8
-    Top = 139
+    Top = 131
     Width = 209
     Height = 17
     Anchors = [akLeft, akBottom]
     Caption = 'Auto-confirm when deleting Favorites'
     TabOrder = 3
-    ExplicitTop = 54
+    ExplicitTop = 139
   end
   object GroupBox1: TGroupBox
     Left = 8
@@ -107,5 +107,17 @@ object Form2: TForm2
       Height = 21
       TabOrder = 2
     end
+  end
+  object CheckBox2: TCheckBox
+    Left = 8
+    Top = 154
+    Width = 209
+    Height = 17
+    Anchors = [akLeft, akBottom]
+    Caption = 'Minimize to tray'
+    Checked = True
+    State = cbChecked
+    TabOrder = 5
+    ExplicitTop = 162
   end
 end

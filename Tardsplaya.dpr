@@ -8,7 +8,6 @@ uses
   Vcl.Forms,
   Unit1 in 'Unit1.pas' {Form1},
   Unit2 in 'Unit2.pas',
-  uHash in 'uHash.pas',
   frmSettings in 'Forms\frmSettings.pas' {Form2};
 
 {$IFDEF RELEASE}
