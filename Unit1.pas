@@ -126,7 +126,6 @@ type
 
     FLastTime: TDateTime;
 
-    // HttpCli1: THttpCli;
     DataIn: TMemoryStream;
     strList: TStringList;
     FExtMediaSequence: Integer;
@@ -144,7 +143,6 @@ type
     name: string;
     url: string;
     resolution: string;
-    // bitrate: string;
   end;
 
 var
@@ -231,28 +229,6 @@ end;
 procedure TForm1.HttpDocDataEvent(Sender: TObject; Buffer: Pointer;
   Len: Integer);
 
-// procedure MsgProcCreateWriteChunkedStreamTask(itm: TStreamUrlQueueItem);
-// begin
-// WriteToLog(Format('Begin feeding chunk %d (partial size %d) to player', [itm.id, itm.contentLength]), False);
-//
-// CreateTask(WriteStreamToPlayer)
-// .OnMessage(TaskMessageProc)
-// .SetParameter('item', itm)
-// .Unobserved
-// .Schedule;
-// end;
-//
-// var
-// httpcli: THttpCli;
-// item: TStreamUrlQueueItem;
-// begin
-// httpcli := Sender as THttpCli;
-// item := TStreamUrlQueueItem.Create;
-// item.id := httpcli.Tag;
-// item.content := AllocMem(Len);
-// item.contentLength := Len;
-// Move(Buffer^, item.Content^, Len);
-// MsgProcCreateWriteChunkedStreamTask(item);
 begin
   // NO-OP
 end;
@@ -416,7 +392,6 @@ begin
       channel := task.Param['channel'].AsString;
 
       DataIn := TMemoryStream.Create;
-      // HttpCli1 := THttpCli.Create(nil);
       strList := TStringList.Create;
 
       try
@@ -426,9 +401,7 @@ begin
           httpcli1.ConnectionTimeout := FOverrideConnectionTimeout;
 
           DataIn.Clear;
-          url :=
-          // 'https://pwn.sh/tools/streamapi.py?url=twitch.tv/beyondthesummit';
-            'https://pwn.sh/tools/streamapi.py?url=twitch.tv/' + channel;
+          url := 'https://pwn.sh/tools/streamapi.py?url=twitch.tv/' + channel;
 
           try
             httpcli1.Get(url, DataIn);
@@ -483,23 +456,6 @@ begin
             exit;
           end;
 
-          // HttpCli1.URL := 'http://usher.twitch.tv/api/channel/hls/' + channel + '.m3u8?sig=' + UrlEncode(json.AsObject.S['sig']) + '&token=' + UrlEncode(json.AsObject.S['token']) + '&allow_source=true&type=any&private_code=&rnd=' + IntToStr(DateTimeToUNIXTimeFAST(Now()));
-          // try
-          // HttpCli1.Get;
-          // except
-          // on E: Exception do
-          // begin
-          // if (E.Message = 'Not Found') then
-          // begin
-          // task.Comm.Send(MSG_URL_ERROR, '[4] Error: Stream not online');
-          // end
-          // else
-          // begin
-          // task.Comm.Send(MSG_URL_ERROR, Format('[4] Error: %s', [E.Message]));
-          // end;
-          // Exit;
-          // end;
-          // end;
           { *
 
             for i := 0 to strList.Count - 1 do
@@ -537,7 +493,6 @@ begin
             else
             tmpName := tmpName + ' - ' + IntToStr(StrToInt(tmpBitrate) div 1024) + ' kbps';
             * }
-          // s:= json.o['urls'].AsObject.GetNames.AsArray.ToString;
           for i := 0 to json.o['urls'].AsObject.GetNames.AsArray.Length - 1 do
           begin
             s := json.o['urls'].AsObject.GetNames.AsArray[i].AsString;
@@ -549,8 +504,6 @@ begin
               .AsString;;
             task.Comm.Send(MSG_URL_QUALITY, quality);
           end;
-          // end;
-          // end;
 
           task.Comm.Send(MSG_URL_DONE, '');
 
@@ -563,7 +516,6 @@ begin
       finally
         FreeAndNil(strList);
         FreeAndNil(DataIn);
-        // FreeAndNil(HttpCli1);
       end;
     end).OnMessage(
     procedure(const task: IOmniTaskControl; const msg: TOmniMessage)
@@ -590,7 +542,6 @@ begin
           begin
             btnLoad.Enabled := True;
             btnLoad.Caption := '1. Load';
-            // lblClusterVal.Caption := msg.MsgData.AsString;
             lstQuality.Enabled := True;
           end;
 
@@ -726,7 +677,6 @@ begin
    lstQuality.Enabled := true;
    btnWatch.Enabled := true;
     end)
-  // .SetParameter('ChannelName', channel.ToLower)
     .Unobserved.Schedule;
 end;
 
@@ -778,24 +728,15 @@ begin
   AutoConfirmFavoriteDeletion := False;
   GetSettings;
 
-  // FSectionCount := 4;
   FSectionCount := 1;
 
 end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-// var
-// i: Integer;
 begin
   Form2.SetSettings;
   TerminateProcess(FPlayerHandle, 0);
   ExitProcess(0);
-  // GlobalOmniThreadPool.CancelAll;
-  // WSACleanup();
-  // for i := 0 to FStreamUrlQueue.Count - 1 do
-  // FStreamUrlQueue[i].Free;
-  // FStreamUrlQueue.Free;
-  // FreeQualities();
 end;
 
 { TExtInf }
@@ -837,7 +778,6 @@ begin
   begin
 
   end;
-  // ExitProcess(0);
   task.Comm.Send(MSG_PLAYER_EXIT);
 
 end;
@@ -934,7 +874,6 @@ var
 
 
 begin
-  // task.Param['ChannelName'].AsString;
 
   case msg.MsgID of
 
@@ -947,11 +886,9 @@ begin
 
     MSG_PLAYER_EXIT:
       begin
-        // ExitProcess(0);
         WriteToLog('Player was closed?', True);
         FHelloWorker.Stop;
         WriteToLog('[Check new chunk task] stopped', True);
-//        btnWatch.Enabled := True;
       end;
 
     MSG_ERROR:
@@ -960,7 +897,6 @@ begin
         MessageBox(0, PWideChar(msg.MsgData.AsString), 'Tardsplaya',
           MB_OK or MB_ICONEXCLAMATION);
         task.Stop;
-//        btnWatch.Enabled := true;
       end;
 
     MSG_LOG_ERROR:
@@ -970,9 +906,7 @@ begin
 
     MSG_LOG_DEBUG:
       begin
-        // {$IFDEF DEBUG}
         WriteToLog(msg.MsgData.AsString, False);
-        // {$ENDIF}
       end;
 
     MSG_STREAM:
@@ -996,15 +930,7 @@ begin
 
     MSG_STREAM_BEGIN_DOWNLOAD:
       begin
-        // chunk := TStreamChunk(msg.MsgData.AsObject);
-        //
-        // chunkSize := FChunkSize; //chunk.queueItem.contentLength div chunk.queueItem.totalChunks;
-        //
-        // WriteToLog(Format('Beginning chunk %d download', [chunk.queueItem.id, chunkSize]), False);
-        // for i := 1 to chunk.queueItem.totalChunks - 1 do
-        // begin
-        // MsgProcCreateDlStreamTask(chunk.queueItem, chunkSize * i, (chunkSize * i) + chunkSize);
-        // end;
+        
       end;
 
     MSG_STREAM_CHUNK_DOWNLOADED:
@@ -1019,10 +945,7 @@ begin
         if (not FWritingStream) and (idx = 0) then
         begin
           MsgProcCreateWriteStreamTask(chunk.queueItem);
-          // {$IFDEF DEBUG}
-          // SaveBufferToFile('stream.ts', chunk.queueItem.content, chunk.queueItem.contentLength);
-          // {$ENDIF}
-        end;
+          end;
 
         chunk.Free;
       end;
@@ -1054,8 +977,6 @@ begin
 
   end;
 
-  // task.ClearTimer(1);
-  // task.Stop;
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);
@@ -1074,7 +995,6 @@ begin
   FStreamUrl := streamUrl;
 
   DataIn := TMemoryStream.Create();
-  // HttpCli1 := THttpCli.Create(nil);
   strList := TStringList.Create;
   extInfs := TList<TExtInf>.Create;
 
@@ -1085,7 +1005,6 @@ end;
 
 destructor THelloWorker.Destroy;
 begin
-  // FreeAndNil(HttpCli1);
   FreeAndNil(extInfs);
   FreeAndNil(strList);
   FreeAndNil(DataIn);
@@ -1175,7 +1094,6 @@ begin
 
       task.Comm.Send(MSG_STREAM, [extInfs[(extInfs.Count - 1)].url,
         FExtMediaSequence]);
-      // errorMsg := 'stream found';
 
     except
       on E: Exception do

@@ -38,7 +38,6 @@ type
   end;
 
 function InitWinsock:Boolean;
-//procedure dlFile(url: string);
 procedure DoDlStream(const task: IOmniTask);
 procedure DoDlStreamOld(const task: IOmniTask);
 function CreateMPCHC(playerPath: string; cmd:string): THandle;
@@ -178,34 +177,9 @@ begin
     // Some applications might keep these handles to monitor the status
     // of the child process, for example.
     Result := piProcInfo.hProcess;
-    //CloseHandle(piProcInfo.hProcess);
     CloseHandle(piProcInfo.hThread);
   end;
 end;
-
-//procedure WriteToPipe;
-//var
-//  dwRead, dwWritten: DWORD;
-//  chBuf: array[0..BUFSIZE - 1] of byte;
-//  bSuccess: Boolean;
-//begin
-//  bSuccess := False;
-//
-//  while True do
-//  begin
-//    bSuccess := ReadFile(g_hInputFile, chBuf, BUFSIZE, dwRead, nil);
-//    if ( not bSuccess) or ( dwRead = 0 ) then break;
-//
-//    bSuccess := WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, dwWritten, nil);
-//    if ( not bSuccess ) then break;
-//  end;
-//
-//// Close the pipe handle so the child process stops reading.
-//
-// if not CloseHandle(g_hChildStd_IN_Wr) then
-//    WriteLn('StdInWr CloseHandle');
-//end;
-
 
 type
   TDownloadItem = class
@@ -253,42 +227,6 @@ begin
       http.Get(chunk.queueItem.url, rcvdStream);
 
       // returned data handled by httpcli event handler, so we don't have to do anything
-
-//      if (SameText(http.TransferEncoding, 'chunked')) then
-//      begin
-//        // handled by httpcli event handler, so we don't have to do anything
-//      end
-//      else if http.ContentLength > 1 then
-//      begin
-//        if chunk.startIndex = 0 then
-//        begin
-////          chunk.queueItem.contentLength := chunk.queueItem.totalChunks * http.ContentLength;
-////          chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
-//          chunk.queueItem.contentLength := http.ContentLength;
-//          chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
-//          task.Comm.Send(MSG_STREAM_BEGIN_DOWNLOAD, chunk);
-//          tmpThreadContentLen := http.ContentLength div chunk.queueItem.totalChunks;
-//        end
-//        else
-//        begin
-//          tmpThreadContentLen := http.ContentLength;
-//        end;
-//
-//        if (http.RcvdStream.Size <> tmpThreadContentLen) then
-//        begin
-//            task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [12] Error: content length (%d) is different from expected (%d)', [chunk.queueItem.id, http.RcvdStream.Size, tmpThreadContentLen]) );
-//        end
-//        else
-//        begin
-//          http.RcvdStream.Position := 0;
-//          http.RcvdStream.ReadBuffer(PByte(chunk.queueItem.content)[chunk.startIndex], http.RcvdStream.Size);
-//        end;
-
-//      end
-//      else
-//      begin
-//        task.Comm.Send(MSG_LOG_ERROR, Format('chunk %d [10] content length (%d) invalid', [chunk.queueItem.id, http.ContentLength]) );
-//      end;
 
         chunk.queueItem.contentLength := rcvdStream.Size;
         chunk.queueItem.content := AllocMem(chunk.queueItem.contentLength);
